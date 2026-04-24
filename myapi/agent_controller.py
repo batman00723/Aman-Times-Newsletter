@@ -1,0 +1,59 @@
+from ninja_extra import ControllerBase, api_controller, http_get
+from ninja_extra.throttling import throttle, UserRateThrottle
+from backend.config import settings
+from ninja_extra import http_get
+from myapi.langgraph.llm_service import FlashLLMService, ProLLMService, ScoreLLMService
+from myapi.langgraph.graph import create_newsletter_agent
+import logging
+from datetime import date
+
+# Initialising them here not in init cus if i do it in itnit so everytime i hit exceute it runs so load on cpu
+flash_service = FlashLLMService()
+#pro_service = ProLLMService()
+score_service= ScoreLLMService()
+newsletter_agent = create_newsletter_agent(score_llm= score_service,
+                                           flash_llm= flash_service
+                                        )
+
+@api_controller("/agent", tags= ['ai'])
+class AgentOperationController(ControllerBase):
+
+    @http_get("/newsletter", throttle= [UserRateThrottle()])
+    def get_newsletter(self, request):
+        print("starting to call newsletter agent")
+
+        today = date.today().isoformat()
+        session_id = f"{today}-aman"
+        
+        config= {"configurable": {"thread_id": session_id}}
+
+        initial_state = {
+            "query": "Breaking geopolitical news in the last 24 hours involving major conflicts, sanctions, military activity, or global energy disruptions affecting India, US, China, Russia, Middle East, or Europe",
+            "search_results": [],
+            "top_links": [],
+            "raw_markdown": [],
+            "newsletter": "",
+            "iteration_count": 0,
+            "status": "pending"
+        }
+
+        try: 
+            final_state= newsletter_agent.invoke(initial_state, config= config)
+            print("Newsletter Generated.")
+
+            newsletter_preview= final_state.get("newsletter", "Empty")
+
+            return {
+                "newsletter_preview": newsletter_preview,
+                "session_id": session_id,
+                "logs": final_state.get("logs", [])
+            }
+        
+        except Exception as e:
+            logger= logging.getLogger(__name__)
+            logger.error(f"Agent Execution Error: {str(e)}", exc_info= True)
+
+            return {
+                "message": "There is problem while running newsletter Agent",
+                "deatils": str(e) if settings.debug else "Internal Server Error"
+            }

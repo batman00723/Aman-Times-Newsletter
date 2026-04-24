@@ -1,0 +1,323 @@
+from .state import NewsLetterState
+from myapi.utilities.websearch import WebSearch
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
+import asyncio
+import json
+from jinja2 import Template
+from django.core.mail import EmailMessage
+from backend.config import settings
+
+def search_node(state: NewsLetterState):
+    """Takes optimised query and finds job links on the web"""
+    query = state["query"]
+    
+    print(f"Searching for: {query}")
+
+    # Run the async search synchronously using a temporary loop
+    try:
+        # This forces the coroutine to finish and returns the actual list
+        search_results = asyncio.run(WebSearch.search_the_web(query=query))
+
+    except Exception as e:
+        print(f"Search failed: {e}")
+        return {"search_results": [], "logs": [f"Search Failure: {str(e)}"]}
+
+    if isinstance(search_results, str): 
+        return {"search_results": [], "logs": ["Web Search Error"]}
+
+
+
+    return {
+        "search_results": search_results
+    }
+
+def scoring_node(state: NewsLetterState, llm):
+    print("Node: Scoring News")
+
+    if not state['search_results']:
+        return {"logs": ["Scoring failed: No serach results found."]}
+    
+    # Sending title and snippet to llm for deduplication scoring
+    news_feed= []
+    for i, item in enumerate(state['search_results']):
+        news_feed.append({
+            "id": i,
+            "title": item.get("title"),
+            "snippet": item.get("content", "")[:500] # sending only limited context
+        })
+
+    prompt = f"""
+    You are an expert Geopolitical Analyst. 
+    YOU ARE A POLARISING AND BLUNT GEOPOLITICS NEWS ANALYST.
+    Rate each news story below from 1 to 10 based on its importance to the global world order.
+    
+    Score based ONLY on:
+    - presence of conflict, sanctions, military movement
+    - involvement of major economies or alliances
+    - measurable impact on trade, energy, or diplomacy
+
+    Do NOT infer importance without evidence
+
+    SCORING RUBRIC:
+    - 10: Potential global conflict, major regime change in a nuclear power, or collapse of a major global economy.
+    - 8: Significant regional shifts, major energy/trade treaty signing, or high-level international sanctions.
+    - 6-7: Routine diplomatic friction, local elections with minor regional impact.
+    - <5: General news, human interest, or local crime.
+
+    RULES:
+    - Only return stories with a score GREATER than 5.
+    - Select a MAXIMUM of 6 stories and atleast 5 stories.
+    - Return ONLY valid JSON.
+    
+    FORMAT:
+    [
+      {{"id": 0, "score": 9, "reason": "concise reason why this is high impact"}}
+    ]
+
+    NEWS STORIES:
+    {json.dumps(news_feed)}
+    """
+
+    try: 
+        response= llm.invoke(prompt).content
+        
+
+        raw_json = response.replace("```json", "").replace("```", "").strip()
+        scored_items = json.loads(raw_json)
+ 
+
+        # Heer we map id to orignal search_results
+        top_links= []
+        for item in scored_items:
+            try: 
+                orignal_article= state['search_results'][item["id"]]
+                top_links.append({
+                    "title": orignal_article["title"],
+                    "url": orignal_article["url"],
+                    "score": item["score"],
+                    "reason": item["reason"]
+                })
+            except (KeyError, IndexError):
+                continue
+        
+        print (f"Success: Selected {len(top_links)} high impact news")
+        return {
+            "top_links": top_links,
+        }
+    
+    except Exception as e:
+        print (f"Error Handling scoring node: {str(e)}")
+        return {"logs": [f"Scoring Error: {str(e)}"]}
+    
+
+def crawl_node(state: NewsLetterState):
+    print(f"Node: Crawling content for top links")
+
+    if not state['top_links']:
+        return {"logs": ["Crawl falied: No top links available"]}
+
+    # Extracting urls from list of dict created in last node
+    urls= [link['url'] for link in state["top_links"]] 
+
+    async def run_crawl():
+        async with AsyncWebCrawler(config= BrowserConfig(headless= True, verbose= False)) as crawler:
+            results = await crawler.arun_many(urls=urls)
+            return [res.markdown for res in results if res.success]
+
+    try:
+        markdown_data = asyncio.run(run_crawl())
+        pruned_markdown= [m[:4000] for m in markdown_data]
+        
+        return {"raw_markdown": pruned_markdown}
+     
+    except Exception as e:
+        print (f"Error: Crawl Node Failed: {e}") 
+        return {"logs":[f"Crawl Error: {str(e)}"]}
+
+def newsletter_generator_node(state: NewsLetterState, llm):
+
+    current_iter = state["iteration_count"] + 1
+    print(f"Node: Generating Newsletter (Iterattion --{current_iter}--)")
+    template_path= "newsletter_template.html"
+    try: 
+        with open(template_path, "r") as f:
+            template_str= f.read()
+    except FileNotFoundError:
+        return {"logs": ["Template file not found in root."]}
+    
+    context= "\n\n---\n\n".join(state["raw_markdown"])
+
+    full_critique_history = "\n".join([f"- {c}" for c in state["critique"]])
+    critique_section = f"\nPAST ERRORS TO FIX:\n{full_critique_history}" if state["critique"] else ""
+
+    prompt = f""" 
+        Write 5-6 professional bullet points based on the SOURCE FACTS.
+
+        Every claim must:
+        - reference a specific actor (country/org)
+        - include a concrete action
+        - avoid vague phrases like "global powers", "significant shift"
+
+        FOR EXAMPLE: “If Hormuz disruption continues, India benefits short-term via discounted oil,
+        but faces long-term shipping risk.”
+
+        STEP 1: TODAY’S TRIGGER (MANDATORY)
+        - Identify 1–2 concrete events from the sources
+        - Must include:
+        - Actor (country/org)
+        - Action (what happened)
+        - No vague language
+
+        STEP 2: KEY SHIFTS (3–5 bullets)
+        Each bullet MUST follow:
+        [WHAT HAPPENED]
+        - Specific actor + action from source
+        [WHY IT MATTERS]
+        - Immediate geopolitical/economic implication
+        [FORWARD SIGNAL]
+        - What this suggests next (short-term impact)
+
+        Also Add Sources from where that news is from like (Source: Reuters, IEA report)
+
+        SOURCE FACTS:
+        {context}
+
+        STYLE:
+        - Blunt, executive, and sophisticated.
+        - Format as an HTML unordered list: <ul><li>...</li></ul>.
+        - Each bullet should be 3-4 lines of deep analysis.
+        
+        {f"CRITIQUE TO FIX: {critique_section}"}
+        """
+    try:
+        response = llm.invoke(prompt)
+
+        if hasattr(response, 'content') and isinstance(response.content, list):
+            raw_text = response.content[0].get('text', '')
+        else:
+            raw_text = response.content
+        
+        
+        clean_text = raw_text.replace('\\n', '\n').strip()
+
+        # jinja is used to bake text into html
+        jinja_template= Template(template_str)
+        final_html= jinja_template.render(newsletter_content= clean_text)
+
+        return {
+            "newsletter": final_html,
+            "iteration_count": current_iter
+        }
+    
+    except Exception as e:
+        return {"logs": [f"Generator Error: {str(e)}"]}
+    
+
+def reflection_node(state: NewsLetterState, llm):
+    print("Node: Reflecting on Quality")
+
+    if state["iteration_count"]>=2:
+        print ("Max iterations reached. moving to publish with logs")
+        return {"status": "publish"}
+    
+    prompt = f"""
+        You are a Fact-Checker. Compare the Newsletter against the Source Markdown.
+        
+        SOURCE MARKDOWN:
+        {state['raw_markdown']}
+
+        GENERATED NEWSLETTER:
+        {state['newsletter']}
+
+        CHECK FOR:
+        1. Hallucinations (Facts not in source).
+        2. Missing major news from the top 6 links.
+        3. Formatting errors.
+
+        If the newsletter is accurate, you must only return "PUBLISH".
+        If there are errors, return a detailed list of what to fix.
+        Return ONLY JSON:
+
+        {{"status": "publish"}}
+        OR
+        {{"status": "revise", "issues": ["..."]}}
+        """    
+            
+    response = llm.invoke(prompt).content
+
+    res_str = str(response[0]) if isinstance(response, list) else str(response)
+
+    try:
+        clean_json = res_str.replace("```json", "").replace("```", "").strip()
+        data = json.loads(clean_json)
+
+        if data.get("status") == "publish":
+            return {"status": "publish"}
+        else:
+            issues = data.get("issues", ["No specific issues listed"])
+            return {
+                "status": "revise",
+                "critique": issues 
+            }
+
+    except:
+        return {
+            "status": "sending",
+            "critique": ["Invalid JSON from reflection"],
+            "iteration_count": state['iteration_count'] + 1
+        }
+    
+
+        
+def should_continue(state: NewsLetterState):
+    """
+    Router function to decide whether to loop back for a revision 
+    or proceed to the final publication.
+    """
+    print(f"--- [ROUTER]: Checking State | Status: {state['status']} | Iterations: {state['iteration_count']} ---")
+    if state['status'] == "publish":
+        return "end"
+
+    if state['iteration_count'] >= 2:
+        return "end"
+    if state['status'] == "revise":
+        print("--- [ROUTER]: Revision required. Looping back to Generate. ---")
+        return "revise"
+    
+    return "end"
+
+from django.core.mail import get_connection
+
+def send_email_node(state: NewsLetterState):
+    print("Node: Sending Newsletter")
+    print(f"{state['newsletter']}")
+
+    if not state['newsletter']:
+        return {"logs": ["Email failed: Newsletter content is empty"]}
+    
+    try:
+        connection= get_connection(fail_silently= False)
+
+        email = EmailMessage(
+            subject="Geopolitics Digest Daily: Morning Briefing",
+            body=state['newsletter'],
+            from_email= settings.email_host_user,
+            to= ["amanmishrarewa23@gmail.com"],   
+            connection= connection   
+        )
+
+        email.content_subtype = "html"    
+
+        print(f"Attempting to Send")    
+
+        email.send()
+        print("Newsletter Sent to Recipients")
+        return {"status": "published"}
+
+    except Exception as e:
+        error_msg = f"Email not sent: {str(e)}"
+        print(f"Error: {error_msg}")
+        return {
+            "status": "error",
+            "logs": [error_msg],
+        }
