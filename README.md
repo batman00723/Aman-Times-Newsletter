@@ -1,15 +1,15 @@
 # Geopolitical Newsletter Agent
 
-An autonomous, self-correcting AI agent that researches, scores, and delivers high-stakes geopolitical briefings. Built with **LangGraph** for agentic orchestration and **Django Ninja** for backend.
+An autonomous, self-correcting AI agent that researches, scores, and delivers geopolitical briefings. Built with **LangGraph** for agentic orchestration and **Django Ninja** for backend.
 
    ## Problem
-   Manually researching news takes 2+ hours daily
+   Manually researching news takes more than an hour daily.
    
    ## Solution
    LangGraph agentic workflow that:
-   - Scrapes 50+ sources async
+   - Scrapes multiple sources async
    - Analyzes & critiques content
-   - Generates HTML newsletter
+   - Generates HTML newsletter and sends it to your Mail
 
 ### Architecture
 
