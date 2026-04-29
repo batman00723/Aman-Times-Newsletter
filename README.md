@@ -2,6 +2,15 @@
 
 An autonomous, self-correcting AI agent that researches, scores, and delivers high-stakes geopolitical briefings. Built with **LangGraph** for agentic orchestration and **Django Ninja** for backend.
 
+   ## Problem
+   Manually researching news takes 2+ hours daily
+   
+   ## Solution
+   LangGraph agentic workflow that:
+   - Scrapes 50+ sources async
+   - Analyzes & critiques content
+   - Generates HTML newsletter
+
 ### Architecture
 
 <p align="center">
