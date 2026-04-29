@@ -3,6 +3,11 @@
 An autonomous, self-correcting AI agent that researches, scores, and delivers high-stakes geopolitical briefings. Built with **LangGraph** for agentic orchestration and **Django Ninja** for a high-performance backend.
 
 ### Core Architecture (LangGraph Nodes)
+
+<p align="center">
+  <img src="job agent.png" width="600" title="Newsletter Agent.png">
+</p>
+
 1. **Search & Discovery**: Dynamically queries real-time news via Tavily, focusing on trade, conflict, and energy security.
 2. **Impact Scoring**: An LLM-based filter that scores news (1-10) to eliminate noise and select the top 6 high-impact stories.
 3. **Async Crawling**: Uses `Crawl4AI` with a headless browser to extract clean Markdown from source URLs.
