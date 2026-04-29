@@ -5,7 +5,7 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers hi
 ### Core Architecture (LangGraph Nodes)
 
 <p align="center">
-  <img src="job agent.png" width="600" title="Newsletter Agent">
+  <img src="Newsletter Agent .png" width="600" title="System Architecture">
 </p>
 
 1. **Search & Discovery**: Dynamically queries real-time news via Tavily, focusing on trade, conflict, and energy security.
