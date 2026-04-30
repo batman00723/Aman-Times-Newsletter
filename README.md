@@ -9,7 +9,7 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers ge
    LangGraph agentic workflow that:
    - Scrapes multiple sources async
    - Analyzes & critiques content
-   - Generates HTML newsletter and sends it to your Mail
+   - Generates an HTML newsletter and sends it to your Mail
 
 ### Architecture
 
@@ -41,13 +41,3 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers ge
 - **Production Infrastructure**: Designed a secure API layer with Pydantic settings and SMTP integration for automated delivery.
 
 ---
-
-## Installation & Setup
-
-1. **Clone & Environment**:
-   ```bash
-   git clone [https://github.com/amanmishra23/geopolitical-newsletter-agent.git](https://github.com/amanmishra23/geopolitical-newsletter-agent.git)
-   cd geopolitical-newsletter-agent
-   python -m venv venv
-   source venv/bin/activate  # venv\Scripts\activate on Windows
-   pip install -r requirements.txt
