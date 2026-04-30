@@ -24,7 +24,13 @@ class WebSearch:
             "include_answer": False,
             "include_raw_content": False,
             "include_domains": [],
-            "exclude_domains": [],
+            "exclude_domains": ["facebook.com", 
+                                "instagram.com", 
+                                "x.com", 
+                                "tiktok.com",
+                                "youtube.com"
+                                ],
+
             "time_range": "d"
         }
         
@@ -35,6 +41,7 @@ class WebSearch:
                     data=json.dumps(payload), 
                     headers=headers, 
                     timeout=(5, 10),
+                
                 )
                 
         

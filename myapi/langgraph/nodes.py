@@ -6,6 +6,7 @@ import json
 from jinja2 import Template
 from django.core.mail import EmailMessage
 from backend.config import settings
+from myapi.models import Subscriber
 
 def search_node(state: NewsLetterState):
     """Takes optimised query and finds job links on the web"""
@@ -120,7 +121,10 @@ def crawl_node(state: NewsLetterState):
     urls= [link['url'] for link in state["top_links"]] 
 
     async def run_crawl():
-        async with AsyncWebCrawler(config= BrowserConfig(headless= True, verbose= False)) as crawler:
+        async with AsyncWebCrawler(config= BrowserConfig(headless= True,
+                                                        verbose= False,
+                                                        java_script_enabled= True,
+                                                        viewport={"width": 800, "height": 600})) as crawler:
             results = await crawler.arun_many(urls=urls)
             return [res.markdown for res in results if res.success]
 
@@ -140,7 +144,7 @@ def newsletter_generator_node(state: NewsLetterState, llm):
     print(f"Node: Generating Newsletter (Iterattion --{current_iter}--)")
     template_path= "newsletter_template.html"
     try: 
-        with open(template_path, "r") as f:
+        with open(template_path, "r", encoding= "utf-8") as f:
             template_str= f.read()
     except FileNotFoundError:
         return {"logs": ["Template file not found in root."]}
@@ -156,34 +160,35 @@ def newsletter_generator_node(state: NewsLetterState, llm):
         Every claim must:
         - reference a specific actor (country/org)
         - include a concrete action
-        - avoid vague phrases like "global powers", "significant shift"
+        - avoid vague phrases like "global powers", "significant shift", "global implications"
 
         FOR EXAMPLE: “If Hormuz disruption continues, India benefits short-term via discounted oil,
         but faces long-term shipping risk.”
 
-        STEP 1: TODAY’S TRIGGER (MANDATORY)
-        - Identify 1–2 concrete events from the sources
-        - Must include:
-        - Actor (country/org)
-        - Action (what happened)
-        - No vague language
+        STRUCTURE:
+        
+        1. TODAY’S TRIGGER (H3 Header):
+           Summarize the most volatile event in 1-2 sentences.
+            - Must include:
+            - Actor (country/org)
+            - Action (what happened)
+            - No vague language
 
-        STEP 2: KEY SHIFTS (3–5 bullets)
-        Each bullet MUST follow:
-        [WHAT HAPPENED]
-        - Specific actor + action from source
-        [WHY IT MATTERS]
-        - Immediate geopolitical/economic implication
-        [FORWARD SIGNAL]
-        - What this suggests next (short-term impact)
+        2. KEY SHIFTS (3-4 high-density bullets):
+           - Each <li> must start with a **BOLD TITLE** representing the core shift.
+           - Follow with 2 sentences of 'The Impact' (why it matters).
+           - End with an *Italicized Forward Signal* (what to watch for next).
+           - Include (Source: Name) at the end of every bullet like  like (Source: Reuters, IEA report)
 
-        Also Add Sources from where that news is from like (Source: Reuters, IEA report)
+        3. FORMATTING:
+           - Use HTML tags: <h3>, <ul>, <li>, <b>, <i>.
+           - No markdown (no # or * for bold). Use tags only.
 
         SOURCE FACTS:
         {context}
 
         STYLE:
-        - Blunt, executive, and sophisticated.
+        - Blunt, executive, and sophisticated geopolitical analyst.
         - Format as an HTML unordered list: <ul><li>...</li></ul>.
         - Each bullet should be 3-4 lines of deep analysis.
         
@@ -292,6 +297,11 @@ def send_email_node(state: NewsLetterState):
     print("Node: Sending Newsletter")
     print(f"{state['newsletter']}")
 
+    def get_recipient_list():
+        return list(Subscriber.objects.filter(is_active=True).values_list('email', flat=True))
+
+    recipients = get_recipient_list()
+
     if not state['newsletter']:
         return {"logs": ["Email failed: Newsletter content is empty"]}
     
@@ -302,7 +312,8 @@ def send_email_node(state: NewsLetterState):
             subject="Geopolitics Digest Daily: Morning Briefing",
             body=state['newsletter'],
             from_email= settings.email_host_user,
-            to= ["amanmishrarewa23@gmail.com"],   
+            to= ["amanmishrarewa23@gmail.com"],  # my secondary email address specially for this work
+            bcc= recipients, # using blind carbon copy for privacy as others cat see each others email address
             connection= connection   
         )
 

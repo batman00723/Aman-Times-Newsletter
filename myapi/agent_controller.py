@@ -1,11 +1,14 @@
 from ninja_extra import ControllerBase, api_controller, http_get
 from ninja_extra.throttling import throttle, UserRateThrottle
 from backend.config import settings
-from ninja_extra import http_get
+from ninja_extra import http_get, http_post, http_delete
 from myapi.langgraph.llm_service import FlashLLMService, ProLLMService, ScoreLLMService
 from myapi.langgraph.graph import create_newsletter_agent
 import logging
 from datetime import date
+from .models import Subscriber
+from .schemas import EmailSchema
+from django.shortcuts import get_object_or_404
 
 # Initialising them here not in init cus if i do it in itnit so everytime i hit exceute it runs so load on cpu
 flash_service = FlashLLMService()
@@ -15,7 +18,27 @@ newsletter_agent = create_newsletter_agent(score_llm= score_service,
                                            flash_llm= flash_service
                                         )
 
-@api_controller("/agent", tags= ['ai'])
+
+@api_controller("/subscriber", tags= ['Subscribers'])
+class EmailRecipentsOperationController(ControllerBase):
+
+    @http_post("/add_subscriber")
+    def subscribe(self, request, data: EmailSchema):
+        subscriber= Subscriber.objects.create(email= data.email)
+        subscriber.is_active= True
+        subscriber.save()
+        return {"message": "Successfully Subscribed to Geopolitical Newsletter"}
+    
+    @http_delete("/uncubscribe")
+    def unsubscribe(self, request, data: EmailSchema):
+        subscriber= get_object_or_404(Subscriber, email= data.email)
+        subscriber.is_active= False
+        subscriber.save()
+        return {"message": "Unsubscibed to Geopolitical Newsletter,"
+                "You can join back anytime."
+                "You are always Welcomed."}
+
+@api_controller("/agent", tags= ['Newsletter Agent'])
 class AgentOperationController(ControllerBase):
 
     @http_get("/newsletter", throttle= [UserRateThrottle()])
@@ -28,7 +51,7 @@ class AgentOperationController(ControllerBase):
         config= {"configurable": {"thread_id": session_id}}
 
         initial_state = {
-            "query": "Breaking geopolitical news in the last 24 hours involving major conflicts, sanctions, military activity, or global energy disruptions affecting India, US, China, Russia, Middle East, or Europe",
+            "query": "Breaking geopolitical news in the last 24 hours involving major conflicts, sanctions, military activity, or global energy disruptions affecting India, US, China, Russia, Middle East, and Europe",
             "search_results": [],
             "top_links": [],
             "raw_markdown": [],
@@ -57,3 +80,5 @@ class AgentOperationController(ControllerBase):
                 "message": "There is problem while running newsletter Agent",
                 "deatils": str(e) if settings.debug else "Internal Server Error"
             }
+        
+
