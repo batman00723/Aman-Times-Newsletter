@@ -1,0 +1,61 @@
+name: Daily Geopolitical Newsletter
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    # 06:00 AM IST is 00:30 UTC
+    - cron: '30 0 * * *'
+  workflow_dispatch: # Manual trigger button
+
+jobs:
+  run-newsletter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # Extra buffer for 130s P90 runs
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: docker build -t newsletter-agent .
+
+      - name: Run Agent Container
+        env:
+          # Database Variables
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_URL: ${{ secrets.DB_URL }}
+          
+          # API Keys
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          
+          # LangSmith Observability
+          LANGCHAIN_TRACING_V2: "true"
+          LANGCHAIN_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          LANGCHAIN_PROJECT: "newsletter-agent-production"
+          LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
+          
+          # Django Settings
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: "False"
+        run: |
+          docker run \
+            -e DB_NAME=$DB_NAME -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD \
+            -e DB_HOST=$DB_HOST -e DB_PORT=$DB_PORT -e DB_URL=$DB_URL \
+            -e GOOGLE_API_KEY=$GOOGLE_API_KEY -e CEREBRAS_API_KEY=$CEREBRAS_API_KEY \
+            -e TAVILY_API_KEY=$TAVILY_API_KEY -e EMAIL_HOST_PASSWORD=$EMAIL_HOST_PASSWORD \
+            -e LANGCHAIN_TRACING_V2=$LANGCHAIN_TRACING_V2 -e LANGCHAIN_API_KEY=$LANGCHAIN_API_KEY \
+            -e LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT -e LANGCHAIN_ENDPOINT=$LANGCHAIN_ENDPOINT \
+            -e SECRET_KEY=$SECRET_KEY -e DEBUG=$DEBUG \
+            newsletter-agent python manage.py run_newsletter_agent
