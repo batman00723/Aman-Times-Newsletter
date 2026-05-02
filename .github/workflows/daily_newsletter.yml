@@ -26,36 +26,35 @@ jobs:
 
       - name: Run Agent Container
         env:
-          # Database Variables
+          # Database & Core (Matches your Settings class)
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_URL: ${{ secrets.DB_URL }}
-          
-          # API Keys
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: "False"
+
+          # AI & Search
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-          
-          # LangSmith Observability
+
+          # LangSmith (Strict mapping for Pydantic validation)
           LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
-          LANGSMITH_PROJECT: "Newsletter Agent"
+          LANGSMITH_PROJECT: "newsletter-agent-production"
           LANGSMITH_ENDPOINT: "https://api.smith.langchain.com"
           LANGSMITH_TRACING: "true"
-          
-          # Django Settings
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DEBUG: "False"
+
         run: |
           docker run \
-            -e DB_NAME=$DB_NAME -e DB_USER=$DB_USER -e DB_PASSWORD=$DB_PASSWORD \
-            -e DB_HOST=$DB_HOST -e DB_PORT=$DB_PORT -e DB_URL=$DB_URL \
-            -e GOOGLE_API_KEY=$GOOGLE_API_KEY -e CEREBRAS_API_KEY=$CEREBRAS_API_KEY \
-            -e TAVILY_API_KEY=$TAVILY_API_KEY -e EMAIL_HOST_PASSWORD=$EMAIL_HOST_PASSWORD \
-            -e LANGCHAIN_TRACING_V2=$LANGCHAIN_TRACING_V2 -e LANGCHAIN_API_KEY=$LANGCHAIN_API_KEY \
-            -e LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT -e LANGCHAIN_ENDPOINT=$LANGCHAIN_ENDPOINT \
-            -e SECRET_KEY=$SECRET_KEY -e DEBUG=$DEBUG \
+            -e DB_NAME="$DB_NAME" -e DB_USER="$DB_USER" -e DB_PASSWORD="$DB_PASSWORD" \
+            -e DB_HOST="$DB_HOST" -e DB_PORT="$DB_PORT" -e DB_URL="$DB_URL" \
+            -e SECRET_KEY="$SECRET_KEY" -e DEBUG="$DEBUG" \
+            -e GOOGLE_API_KEY="$GOOGLE_API_KEY" -e CEREBRAS_API_KEY="$CEREBRAS_API_KEY" \
+            -e TAVILY_API_KEY="$TAVILY_API_KEY" -e EMAIL_HOST_PASSWORD="$EMAIL_HOST_PASSWORD" \
+            -e LANGSMITH_API_KEY="$LANGSMITH_API_KEY" -e LANGSMITH_PROJECT="$LANGSMITH_PROJECT" \
+            -e LANGSMITH_ENDPOINT="$LANGSMITH_ENDPOINT" -e LANGSMITH_TRACING="$LANGSMITH_TRACING" \
             newsletter-agent python manage.py run_newsletter_agent
