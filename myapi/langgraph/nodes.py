@@ -7,6 +7,9 @@ from jinja2 import Template
 from django.core.mail import EmailMessage
 from backend.config import settings
 from myapi.models import Subscriber
+import trafilatura
+import requests
+from .tasks import send_newsletter_task
 
 def search_node(state: NewsLetterState):
     """Takes optimised query and finds job links on the web"""
@@ -112,31 +115,35 @@ def scoring_node(state: NewsLetterState, llm):
     
 
 def crawl_node(state: NewsLetterState):
-    print(f"Node: Crawling content for top links")
+    print(f"Node: Crawling content for top links using Trafilatura")
+    if not state.get('top_links'):
+        return {"logs": ["Crawl failed: No top links available"]}
 
-    if not state['top_links']:
-        return {"logs": ["Crawl falied: No top links available"]}
+    urls = [link['url'] for link in state["top_links"]] 
+    extracted_text = []
 
-    # Extracting urls from list of dict created in last node
-    urls= [link['url'] for link in state["top_links"]] 
-
-    async def run_crawl():
-        async with AsyncWebCrawler(config= BrowserConfig(headless= True,
-                                                        verbose= False,
-                                                        java_script_enabled= True,
-                                                        viewport={"width": 800, "height": 600})) as crawler:
-            results = await crawler.arun_many(urls=urls)
-            return [res.markdown for res in results if res.success]
-
-    try:
-        markdown_data = asyncio.run(run_crawl())
-        pruned_markdown= [m[:4000] for m in markdown_data]
+    for url in urls:
+        try:
+            downloaded = trafilatura.fetch_url(url)
+            if downloaded and len(downloaded) < 2000000:
+                text = trafilatura.extract(
+                    downloaded,
+                    include_comments=False,
+                    include_tables=False,
+                    no_fallback=False,
+                    include_images=False,
+                )
+                if text:
+                    # Pruning to 4k to keep LLM context window clean and costs low
+                    extracted_text.append(text[:4000]) 
+        except Exception as e:
+            print(f"Warning: Failed to extract {url}: {e}")
+            continue
+    
+    if not extracted_text:
+        return {"raw_markdown": [], "logs": ["Crawl Node: No context could be extracted"]}
         
-        return {"raw_markdown": pruned_markdown}
-     
-    except Exception as e:
-        print (f"Error: Crawl Node Failed: {e}") 
-        return {"logs":[f"Crawl Error: {str(e)}"]}
+    return {"raw_markdown": extracted_text}
 
 def newsletter_generator_node(state: NewsLetterState, llm):
 
@@ -291,44 +298,18 @@ def should_continue(state: NewsLetterState):
     
     return "end"
 
-from django.core.mail import get_connection
+
 
 def send_email_node(state: NewsLetterState):
-    print("Node: Sending Newsletter")
-    print(f"{state['newsletter']}")
+    print("Node: Offloading Newsletter to Celery Queue")
 
-    def get_recipient_list():
-        return list(Subscriber.objects.filter(is_active=True).values_list('email', flat=True))
-
-    recipients = get_recipient_list()
-
-    if not state['newsletter']:
-        return {"logs": ["Email failed: Newsletter content is empty"]}
+    if not state.get('newsletter'):
+        return {"status": "error", "logs": ["Email failed: Newsletter content is empty"]}
     
-    try:
-        connection= get_connection(fail_silently= False)
+    # Query recipients synchronously within the node
+    recipients = list(Subscriber.objects.filter(is_active=True).values_list('email', flat=True))
 
-        email = EmailMessage(
-            subject="Geopolitics Digest Daily: Morning Briefing",
-            body=state['newsletter'],
-            from_email= settings.email_host_user,
-            to= ["amanmishrarewa23@gmail.com"],  # my secondary email address specially for this work
-            bcc= recipients, # using blind carbon copy for privacy as others cat see each others email address
-            connection= connection   
-        )
+    send_newsletter_task.delay(state['newsletter'], recipients)
 
-        email.content_subtype = "html"    
-
-        print(f"Attempting to Send")    
-
-        email.send()
-        print("Newsletter Sent to Recipients")
-        return {"status": "published"}
-
-    except Exception as e:
-        error_msg = f"Email not sent: {str(e)}"
-        print(f"Error: {error_msg}")
-        return {
-            "status": "error",
-            "logs": [error_msg],
-        }
+    print("Task queued in Redis. Moving to end state.")
+    return {"status": "published"}
