@@ -51,13 +51,14 @@ class AgentOperationController(ControllerBase):
         config= {"configurable": {"thread_id": session_id}}
 
         initial_state = {
-            "query": "Breaking geopolitical news in the last 24 hours involving major conflicts, sanctions, military activity, or global energy disruptions affecting India, US, China, Russia, Middle East, and Europe",
+            "query": "Breaking geopolitical news in the last 24 hours affecting US, especially India, China, Russia, Europe or any major countries.",
             "search_results": [],
             "top_links": [],
             "raw_markdown": [],
             "newsletter": "",
             "iteration_count": 0,
-            "status": "pending"
+            "status": "pending",
+            "logs": []
         }
 
         try: 

@@ -50,7 +50,7 @@ def scoring_node(state: NewsLetterState, llm):
     prompt = f"""
     You are an expert Geopolitical Analyst. 
     YOU ARE A POLARISING AND BLUNT GEOPOLITICS NEWS ANALYST.
-    Rate each news story below from 1 to 10 based on its importance to the global world order.
+    Rate each news story below from 1 to 10 based on its importance to the global world order. 
     
     Score based ONLY on:
     - presence of conflict, sanctions, military movement
@@ -60,7 +60,7 @@ def scoring_node(state: NewsLetterState, llm):
     Do NOT infer importance without evidence
 
     SCORING RUBRIC:
-    - 10: Potential global conflict, major regime change in a nuclear power, or collapse of a major global economy.
+    - 10: Potential global conflict, major regime change in a nuclear power, or collapse of a major global economy related to India or directly or inderectly affecting India.
     - 8: Significant regional shifts, major energy/trade treaty signing, or high-level international sanctions.
     - 6-7: Routine diplomatic friction, local elections with minor regional impact.
     - <5: General news, human interest, or local crime.

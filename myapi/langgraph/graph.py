@@ -12,7 +12,7 @@ DB_URL = settings.db_url.get_secret_value()
 _pool = ConnectionPool(
     conninfo=DB_URL,
     max_size=10,
-    kwargs={"autocommit": True, "prepare_threshold": 0}
+    kwargs={"autocommit": True, "prepare_threshold": 0} 
 )
 
 memory = PostgresSaver(_pool)
