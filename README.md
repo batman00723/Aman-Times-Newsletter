@@ -33,12 +33,18 @@ This system was iteratively optimized using LangSmith tracing to identify and el
 - Token usage: <20k per run
 
   <p align="center">
-  <img src="Trace Latency.png" width="400" title="System Architecture">
+  <img src="Trace Latency.png" width="600" title="System Architecture">
 </p>
+**Insight:**  
+Initial runs showed high variance (P99 ~180s), indicating unstable performance due to slow crawling. After optimization, both P50 and P99 stabilized (~25–30s), significantly improving reliability.
+
+---
 
 <p align="center">
-  <img src="Node-wise Median Latency.png" width="400" title="System Architecture">
+  <img src="Node-wise Median Latency.png" width="600" title="System Architecture">
 </p>
+**Insight:**  
+The crawl stage dominated latency (~60s) before optimization. Replacing browser-based scraping with lightweight parsing reduced crawl time to ~4–8s, eliminating the primary bottleneck.
 
 ### Key Improvements
 - Replaced browser-based (Crawl4AI) scraping with lightweight HTTP parsing (trafilatura)
