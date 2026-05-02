@@ -47,6 +47,7 @@ Initial runs showed high variance (P99 ~180s), indicating unstable performance d
 
 **Insight:**  
 The crawl stage dominated latency (~60s) before optimization. Replacing browser-based scraping with lightweight parsing reduced crawl time to ~4–8s, eliminating the primary bottleneck.
+Occasional spikes in the generation node are due to external API rate limits (Gemini free tier), not system inefficiencies.
 
 ### Key Improvements
 - Replaced browser-based (Crawl4AI) scraping with lightweight HTTP parsing (trafilatura)
