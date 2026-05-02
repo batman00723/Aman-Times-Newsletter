@@ -41,10 +41,10 @@ jobs:
           EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
           
           # LangSmith Observability
-          LANGCHAIN_TRACING_V2: "true"
-          LANGCHAIN_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
-          LANGCHAIN_PROJECT: "newsletter-agent-production"
-          LANGCHAIN_ENDPOINT: "https://api.smith.langchain.com"
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          LANGSMITH_PROJECT: "Newsletter Agent"
+          LANGSMITH_ENDPOINT: "https://api.smith.langchain.com"
+          LANGSMITH_TRACING: "true"
           
           # Django Settings
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
