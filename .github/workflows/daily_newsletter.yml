@@ -7,12 +7,12 @@ on:
   schedule:
     # 06:00 AM IST is 00:30 UTC
     - cron: '30 0 * * *'
-  workflow_dispatch: # Manual trigger button
+  workflow_dispatch: 
 
 jobs:
   run-newsletter:
     runs-on: ubuntu-latest
-    timeout-minutes: 15 # Extra buffer for 130s P90 runs
+    timeout-minutes: 15 
 
     steps:
       - name: Checkout Code
@@ -24,9 +24,13 @@ jobs:
       - name: Build Docker Image
         run: docker build -t newsletter-agent .
 
+      - name: Force IPv4
+        run: |
+          sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+          sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+
       - name: Run Agent Container
         env:
-          # Database & Core (Matches your Settings class)
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -35,26 +39,30 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: "False"
-
-          # AI & Search
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
-
-          # LangSmith (Strict mapping for Pydantic validation)
           LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
           LANGSMITH_PROJECT: "newsletter-agent-production"
           LANGSMITH_ENDPOINT: "https://api.smith.langchain.com"
           LANGSMITH_TRACING: "true"
-
         run: |
           docker run \
-            -e DB_NAME="$DB_NAME" -e DB_USER="$DB_USER" -e DB_PASSWORD="$DB_PASSWORD" \
-            -e DB_HOST="$DB_HOST" -e DB_PORT="$DB_PORT" -e DB_URL="$DB_URL" \
-            -e SECRET_KEY="$SECRET_KEY" -e DEBUG="$DEBUG" \
-            -e GOOGLE_API_KEY="$GOOGLE_API_KEY" -e CEREBRAS_API_KEY="$CEREBRAS_API_KEY" \
-            -e TAVILY_API_KEY="$TAVILY_API_KEY" -e EMAIL_HOST_PASSWORD="$EMAIL_HOST_PASSWORD" \
-            -e LANGSMITH_API_KEY="$LANGSMITH_API_KEY" -e LANGSMITH_PROJECT="$LANGSMITH_PROJECT" \
-            -e LANGSMITH_ENDPOINT="$LANGSMITH_ENDPOINT" -e LANGSMITH_TRACING="$LANGSMITH_TRACING" \
+            -e DB_NAME="$DB_NAME" \
+            -e DB_USER="$DB_USER" \
+            -e DB_PASSWORD="$DB_PASSWORD" \
+            -e DB_HOST="$DB_HOST" \
+            -e DB_PORT="$DB_PORT" \
+            -e DB_URL="$DB_URL" \
+            -e SECRET_KEY="$SECRET_KEY" \
+            -e DEBUG="$DEBUG" \
+            -e GOOGLE_API_KEY="$GOOGLE_API_KEY" \
+            -e CEREBRAS_API_KEY="$CEREBRAS_API_KEY" \
+            -e TAVILY_API_KEY="$TAVILY_API_KEY" \
+            -e EMAIL_HOST_PASSWORD="$EMAIL_HOST_PASSWORD" \
+            -e LANGSMITH_API_KEY="$LANGSMITH_API_KEY" \
+            -e LANGSMITH_PROJECT="$LANGSMITH_PROJECT" \
+            -e LANGSMITH_ENDPOINT="$LANGSMITH_ENDPOINT" \
+            -e LANGSMITH_TRACING="$LANGSMITH_TRACING" \
             newsletter-agent python manage.py run_newsletter_agent
