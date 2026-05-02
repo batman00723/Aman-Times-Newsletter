@@ -16,7 +16,7 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers ge
    - Validates outputs using a reflection loop to reduce hallucinations
    - Delivers newsletters asynchronously via background workers
 
-## 🚀 Performance Optimization
+## Performance Optimization
 
 This system was iteratively optimized using LangSmith tracing to identify and eliminate bottlenecks.
 
