@@ -32,6 +32,14 @@ This system was iteratively optimized using LangSmith tracing to identify and el
 - Crawl step: ~4–8s (lightweight HTTP parsing with trafilatura)
 - Token usage: <20k per run
 
+  <p align="center">
+  <img src="Trace Latency.png" width="400" title="System Architecture">
+</p>
+
+<p align="center">
+  <img src="Node-wise Median Latency.png" width="400" title="System Architecture">
+</p>
+
 ### Key Improvements
 - Replaced browser-based (Crawl4AI) scraping with lightweight HTTP parsing (trafilatura)
 - Reduced redundant LLM context → lower token cost
