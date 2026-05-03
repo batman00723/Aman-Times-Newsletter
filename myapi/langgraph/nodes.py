@@ -1,6 +1,5 @@
 from .state import NewsLetterState
 from myapi.utilities.websearch import WebSearch
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 import asyncio
 import json
 from jinja2 import Template
