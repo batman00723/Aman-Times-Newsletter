@@ -1,4 +1,4 @@
-from ninja_extra import ControllerBase, api_controller, http_get
+from ninja_extra import ControllerBase, api_controller, http_get, throttle
 from ninja_extra.throttling import throttle, UserRateThrottle
 from backend.config import settings
 from ninja_extra import http_get, http_post, http_delete
@@ -41,7 +41,8 @@ class EmailRecipentsOperationController(ControllerBase):
 @api_controller("/agent", tags= ['Newsletter Agent'])
 class AgentOperationController(ControllerBase):
 
-    @http_get("/newsletter", throttle= [UserRateThrottle()])
+    @http_get("/newsletter")
+    @throttle(UserRateThrottle)
     def get_newsletter(self, request):
         print("starting to call newsletter agent")
 

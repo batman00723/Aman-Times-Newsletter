@@ -131,8 +131,7 @@ NINJA_EXTRA = {
         "ninja_extra.throttling.AnonRateThrottle",
     ],
     "THROTTLE_RATES": {
-        "user": "3/min",    # Logged-in users (Aman, your testers)
-        "anon": "2/min",    # Strangers (if you had public endpoints)
+        "user": "1/day",  
     },
 }
 
@@ -153,3 +152,10 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "newsletter_throttle_cache",
+    }
+}
