@@ -2,6 +2,7 @@ from backend.config import settings
 from langchain_cerebras import ChatCerebras
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+
 class FlashLLMService:
     def __init__(self):
         self.model= ChatGoogleGenerativeAI(

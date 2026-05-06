@@ -42,7 +42,7 @@ class EmailRecipentsOperationController(ControllerBase):
 class AgentOperationController(ControllerBase):
 
     @http_get("/newsletter")
-    @throttle(UserRateThrottle)
+    #@throttle(UserRateThrottle)
     def get_newsletter(self, request):
         print("starting to call newsletter agent")
 

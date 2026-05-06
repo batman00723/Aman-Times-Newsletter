@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     db_user: str
     db_password: SecretStr
     db_host: str
-    db_port: str
+    db_port: int
     db_url: SecretStr
     
     jwt_access_lifetime_mins: int = 60
@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     email_host_password: SecretStr
 
     model_config= SettingsConfigDict(env_file= ".env",
-                                     extra= 'ignore')
+                                     extra= 'ignore',
+                                     case_sensitive=False)
 
 settings= Settings()

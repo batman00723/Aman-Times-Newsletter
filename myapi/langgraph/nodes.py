@@ -69,7 +69,7 @@ def scoring_node(state: NewsLetterState, llm):
 
     RULES:
     - Only return stories with a score GREATER than 5.
-    - Select a MAXIMUM of 6 stories and atleast 5 stories.
+    - Select a MAXIMUM of 4 stories and atleast 3 stories.
     - Return ONLY valid JSON.
     
     FORMAT:
@@ -127,8 +127,8 @@ def crawl_node(state: NewsLetterState):
     extracted_text = []
 
     START_TIME = time.time()
-    MAX_TOTAL_TIME = 11  # seconds
-    REQUEST_TIMEOUT = 4  # per request
+    MAX_TOTAL_TIME = 10  # seconds
+    REQUEST_TIMEOUT = 3  # per request
 
     for url in urls:
 
@@ -185,7 +185,7 @@ def newsletter_generator_node(state: NewsLetterState, llm):
     critique_section = f"\nPAST ERRORS TO FIX:\n{full_critique_history}" if state["critique"] else ""
 
     prompt = f""" 
-        Write 5-6 professional bullet points based on the SOURCE FACTS.
+        Write 4-5 professional bullet points based on the SOURCE FACTS.
 
         Every claim must:
         - reference a specific actor (country/org)
@@ -271,10 +271,13 @@ def reflection_node(state: NewsLetterState, llm):
 
         If the newsletter is accurate, you must only return "PUBLISH".
         If there are errors, return a detailed list of what to fix.
-        Return ONLY JSON:
+
+        IMPORTANT: Return ONLY JSON:
 
         {{"status": "publish"}}
+
         OR
+
         {{"status": "revise", "issues": ["..."]}}
         """    
             
