@@ -19,7 +19,7 @@ class WebSearch:
             "api_key": api_key,
             "query": query,
             "search_depth": "advanced", 
-            "max_results": 10,
+            "max_results": 15,
             "include_images": False,
             "include_answer": False,
             "include_raw_content": False,

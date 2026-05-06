@@ -11,7 +11,7 @@ SECRET_KEY = settings.secret_key.get_secret_value()
 
 DEBUG = settings.debug
 
-ALLOWED_HOSTS = [".render.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["aman-times-newsletter.up.railway.app", ".up.railway.app", ".render.com", "localhost", "127.0.0.1"]
 
 
 # Application definition
