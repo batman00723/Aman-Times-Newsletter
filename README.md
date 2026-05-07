@@ -14,30 +14,30 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers ge
    - Extracts clean article content using lightweight parsing
    - Generates structured HTML newsletters
    - Validates outputs using a reflection loop to reduce hallucinations
-   - Delivers newsletters asynchronously via background workers
+   - Delivers newsletters asynchronously via background workers(for production background workers are not used due to free tier limits of Railway)
 
-## Performance Optimization
+## Performance Optimisation
 
-This system was iteratively optimized using LangSmith tracing to identify and eliminate bottlenecks.
+This system was iteratively optimised using LangSmith tracing to identify and eliminate bottlenecks.
 
-### Before Optimization
+### Before Optimisation
 - End-to-end latency: ~95–120s (P50)
 - Tail latency: ~180s (P99)
 - Crawl step: ~60s (browser-based scraping)
 - Token usage: ~40k per run
 
-### After Optimization
+### After Optimisation
 - End-to-end latency: ~25s (P50)
 - Tail latency: ~30s (P99)
 - Crawl step: ~4–8s (lightweight HTTP parsing with trafilatura)
-- Token usage: <20k per run
+- Token usage: <15k per run
 
   <p align="center">
   <img src="Trace Latency.png" width="600" title="System Architecture">
 </p>
 
 **Insight:**  
-Initial runs showed high variance (P99 ~180s), indicating unstable performance due to slow crawling. After optimization, both P50 and P99 stabilized (~25–30s), significantly improving reliability.
+Initial runs showed high variance (P99 ~180s), indicating unstable performance due to slow crawling. After optimisation, both P50 and P99 stabilised (~25–30s), significantly improving reliability.
 
 ---
 
@@ -46,7 +46,7 @@ Initial runs showed high variance (P99 ~180s), indicating unstable performance d
 </p>
 
 **Insight:**  
-The crawl stage dominated latency (~60s) before optimization. Replacing browser-based scraping with lightweight parsing reduced crawl time to ~4–8s, eliminating the primary bottleneck.
+The crawl stage dominated latency (~60s) before optimisation. Replacing browser-based scraping with lightweight parsing reduced crawl time to ~4–8s, eliminating the primary bottleneck.
 Occasional spikes in the generation node are due to external API rate limits (Gemini free tier), not system inefficiencies.
 
 ### Key Improvements
@@ -79,16 +79,16 @@ Occasional spikes in the generation node are due to external API rate limits (Ge
 ## Tech Stack
 - **Framework**: Django Ninja (FastAPI-style performance with Django robustness)
 - **Agent Orchestration**: LangGraph (Stateful, multi-step workflows)
-- **LLMs**: Gemini 3.1 Flash for Generation and llama3.1-8b by Cerebras for Scoring Node.
+- **LLMs**: Gemini 3.1 Flash/ llama3.1 8b by Cerebras for Generation and llama3.1-8b by Cerebras for Scoring Node.
 - **Data Fetching**: Trafilatura & Tavily Search API
 - **State Management**: Pydantic v2 & Postgres Checkpointing
-- **Background Tasks**: Celery (Worker) and Redis (Queue) for Email Publish Offloading to further reduce User Percieved Latency.
+- **Background Tasks**: Celery (Worker) and Redis (Queue) for Email Publish Offloading to further reduce User Perceived Latency(for production constraints, no offloading).
 
 ---
 
 ## Technical Highlights
 - **Agentic Loops**: Implemented a conditional router that manages state transitions.
 - **State Persistence**: Used `PostgresSaver` for thread-based conversation history and state recovery.
-- **Production Infrastructure**: Designed a secure API layer with Pydantic settings and SMTP integration for automated delivery.
+- **Production Infrastructure**: Designed a API layer with Pydantic settings and SMTP integration for automated delivery.
 
 ---
