@@ -92,3 +92,17 @@ Occasional spikes in the generation node are due to external API rate limits (Ge
 - **Production Infrastructure**: Designed a API layer with Pydantic settings and SMTP integration for automated delivery.
 
 ---
+
+## Live Demo
+**Try it now:** https://aman-times-newsletter.up.railway.app/api_v1/docs
+
+(Email sending might not work as SMTP connection is getting blocked by Railway and latency might be higher as using Gemini models beacuse Cerebras is rate limiting heavily for Railway server)
+
+
+### Setup
+```bash
+git clone https://github.com/batman00723/Aman-Times-Newsletter.git
+cd Aman-Times-Newsletter
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
