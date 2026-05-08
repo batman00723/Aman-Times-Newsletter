@@ -2,7 +2,7 @@
 
 An autonomous, self-correcting AI agent that researches, scores, and delivers geopolitical briefings. Built with **LangGraph** for agentic orchestration and **Django Ninja** for backend.
 
-> Optimized LLM agent pipeline achieving ~75% latency reduction and 6x improvement in tail latency (P99)
+ > Optimized LLM agent pipeline achieving ~75% latency reduction and 6x improvement in tail latency (P99)
 
    ## Problem
    Manually researching news takes more than an hour daily.
