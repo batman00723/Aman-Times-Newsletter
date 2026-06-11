@@ -78,14 +78,14 @@ Occasional spikes in the generation node are due to external API rate limits (Ge
 
 ## Why This Matters
 
-- Reduces daily manual research time from ~1 hour to ~25 seconds
+- Reduces daily manual research time from ~1 hour to ~22 seconds
 - Ensures consistent, high-quality geopolitical summaries
 - Demonstrates real-world LLM system optimization (latency, cost, reliability)
 
 ## Tech Stack
 - **Framework**: Django Ninja (FastAPI-style performance with Django robustness)
 - **Agent Orchestration**: LangGraph (Stateful, multi-step workflows)
-- **LLMs**: Gemini 3.1 Flash/ llama3.1 8b by Cerebras for Generation and llama3.1-8b by Cerebras for Scoring Node.
+- **LLMs**: Qwen3-32B by Groq for Generation and llama3.1-8b by Groq for Scoring Node.
 - **Data Fetching**: Trafilatura & Tavily Search API
 - **State Management**: Pydantic v2 & Postgres Checkpointing
 - **Background Tasks**: Celery (Worker) and Redis (Queue) for Email Publish Offloading to further reduce User Perceived Latency(for production constraints, no offloading).
@@ -95,14 +95,17 @@ Occasional spikes in the generation node are due to external API rate limits (Ge
 ## Technical Highlights
 - **Agentic Loops**: Implemented a conditional router that manages state transitions.
 - **State Persistence**: Used `PostgresSaver` for thread-based conversation history and state recovery.
-- **Production Infrastructure**: Designed a API layer with Pydantic settings and SMTP integration for automated delivery.
+- **Production Infrastructure**: Designed a API layer with Pydantic settings and Brevo Mail API integration for automated delivery.
 
 ---
 
 ## Live Demo
-**Try it now:** https://aman-times-newsletter.up.railway.app/api_v1/docs
+**Try it now:** https://newsletter-yend.onrender.com/api_v1/docs
 
-
+### How to try: 
+1. First Subscribe to Newsletter by putting you email address to subscribe endpoint.
+2. Go to Get NewsLetter Endpoint and Get your Nesletter.
+3. You can unsubscribe anytime by putting your registered email at Unsubscribe Endpoint.
 
 ### Setup
 ```bash
