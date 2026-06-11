@@ -283,10 +283,10 @@ def newsletter_generator_node(state: NewsLetterState, llm):
     try:
         response = llm.invoke(prompt)
 
-        print("RAW RESPONSE:")
-        print(response)
-        print("CONTENT:")
-        print(response.content)
+        # print("RAW RESPONSE:")
+        # print(response)
+        # print("CONTENT:")
+        # print(response.content)
 
         if hasattr(response, 'content') and isinstance(response.content, list):
             raw_text = response.content[0].get('text', '')
