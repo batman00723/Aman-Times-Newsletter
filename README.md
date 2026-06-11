@@ -19,6 +19,11 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers ge
 ## Performance Optimisation
 
 This system was iteratively optimised using LangSmith tracing to identify and eliminate bottlenecks.
+Using LangSmith tracing, I identified latency bottlenecks and reduced newsletter generation time from 95-120s to under 20s for typical runs.
+
+  <p align="center">
+  <img src="Newsletter_Latency.png" width="900" title="Latency">
+</p>
 
 ### Before Optimisation
 - End-to-end latency: ~95–120s (P50)
@@ -26,14 +31,15 @@ This system was iteratively optimised using LangSmith tracing to identify and el
 - Crawl step: ~60s (browser-based scraping)
 - Token usage: ~40k per run
 
-### After Optimisation
-- End-to-end latency: ~25s (P50)
-- Tail latency: ~30s (P99)
-- Crawl step: ~4–8s (lightweight HTTP parsing with trafilatura)
+### After Optimization
+
+- End-to-end latency: ~18-22s (P50)
+- Tail latency: ~25-30s (P99)
+- Crawl step: ~4-8s (Trafilatura-based extraction)
 - Token usage: <15k per run
 
   <p align="center">
-  <img src="Trace Latency.png" width="600" title="System Architecture">
+  <img src="Trace Latency.png" width="600" title="trace latency">
 </p>
 
 **Insight:**  
@@ -42,7 +48,7 @@ Initial runs showed high variance (P99 ~180s), indicating unstable performance d
 ---
 
 <p align="center">
-  <img src="Node-wise Median Latency.png" width="600" title="System Architecture">
+  <img src="Node-wise Median Latency.png" width="600" title="Node wise median latency">
 </p>
 
 **Insight:**  
@@ -96,7 +102,6 @@ Occasional spikes in the generation node are due to external API rate limits (Ge
 ## Live Demo
 **Try it now:** https://aman-times-newsletter.up.railway.app/api_v1/docs
 
-(Email sending might not work as SMTP connection is getting blocked by Railway and latency might be higher as using Gemini models beacuse Cerebras is rate limiting heavily for Railway server)
 
 
 ### Setup
