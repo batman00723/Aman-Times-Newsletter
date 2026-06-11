@@ -47,7 +47,7 @@ class AgentOperationController(ControllerBase):
         print("starting to call newsletter agent")
 
         today = date.today().isoformat()
-        session_id = f"44434-aman"
+        session_id = f"{today}-aman"
         
         config= {"configurable": {"thread_id": session_id}}
 
