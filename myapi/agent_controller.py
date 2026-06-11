@@ -12,12 +12,12 @@ from django.shortcuts import get_object_or_404
 
 # Initialising them here not in init cus if i do it in itnit so everytime i hit exceute it runs so load on cpu
 flash_service = FlashLLMService()
-#pro_service = ProLLMService()
+pro_service = ProLLMService()
 score_service= ScoreLLMService()
-newsletter_agent = create_newsletter_agent(score_llm= score_service,
-                                           flash_llm= flash_service
+newsletter_agent = create_newsletter_agent(score_llm= flash_service,
+                                           flash_llm= flash_service,
+                                           pro_llm= pro_service
                                         )
-
 
 @api_controller("/subscriber", tags= ['Subscribers'])
 class EmailRecipentsOperationController(ControllerBase):
@@ -47,12 +47,12 @@ class AgentOperationController(ControllerBase):
         print("starting to call newsletter agent")
 
         today = date.today().isoformat()
-        session_id = f"{today}-aman"
+        session_id = f"44434-aman"
         
         config= {"configurable": {"thread_id": session_id}}
 
         initial_state = {
-            "query": "Breaking geopolitical news in the last 24 hours affecting US, especially India, China, Russia, Europe or any major countries.",
+            "query": "Breaking geopilitical nes in last 24 hours affecting India, Russia, United States, and other major countries and organisations",
             "search_results": [],
             "top_links": [],
             "raw_markdown": [],

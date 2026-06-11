@@ -3,12 +3,21 @@ from myapi.utilities.websearch import WebSearch
 import asyncio
 import json
 from jinja2 import Template
-from django.core.mail import EmailMessage, get_connection
 from backend.config import settings
 from myapi.models import Subscriber
-import trafilatura
 import requests
+import resend
+from myapi.models import Subscriber
+from backend.config import settings  
+import time
+import requests
+import trafilatura
+from .schemas import ScoredNewsResponse, CritiqueNodeResponse
+import sib_api_v3_sdk
+import re
 #from .tasks import send_newsletter_task
+
+
 
 def search_node(state: NewsLetterState):
     """Takes optimised query and finds job links on the web"""
@@ -50,60 +59,98 @@ def scoring_node(state: NewsLetterState, llm):
         })
 
     prompt = f"""
-    You are an expert Geopolitical Analyst. 
-    YOU ARE A POLARISING AND BLUNT GEOPOLITICS NEWS ANALYST.
-    Rate each news story below from 1 to 10 based on its importance to the global world order. 
-    
-    Score based ONLY on:
-    - presence of conflict, sanctions, military movement
-    - involvement of major economies or alliances
-    - measurable impact on trade, energy, or diplomacy
+        You are an expert Geopolitical Analyst specializing in India's strategic interests.
 
-    Do NOT infer importance without evidence
+        Rate each news story from 1-10 based on BOTH:
 
-    SCORING RUBRIC:
-    - 10: Potential global conflict, major regime change in a nuclear power, or collapse of a major global economy related to India or directly or inderectly affecting India.
-    - 8: Significant regional shifts, major energy/trade treaty signing, or high-level international sanctions.
-    - 6-7: Routine diplomatic friction, local elections with minor regional impact.
-    - <5: General news, human interest, or local crime.
+        1. Impact on the global world order
+        2. Strategic importance to India
 
-    RULES:
-    - Only return stories with a score GREATER than 5.
-    - Select a MAXIMUM of 4 stories and atleast 3 stories.
-    - Return ONLY valid JSON.
-    
-    FORMAT:
-    [
-      {{"id": 0, "score": 9, "reason": "concise reason why this is high impact"}}
-    ]
+        PRIORITIZE:
+        - India's foreign policy
+        - India's energy security
+        - India's defense and military posture
+        - India-China relations
+        - India-Pakistan relations
+        - India-US relations
+        - BRICS
+        - QUAD
+        - Indian Ocean security
+        - Trade corridors affecting India
+        - Supply chains affecting India
+        - Major geopolitical developments that directly or indirectly impact India
+
+        Score based ONLY on evidence present in the article.
+
+        SCORING RUBRIC:
+
+        10:
+        - Major geopolitical event directly affecting India's security, economy, diplomacy, or strategic position
+        - Large-scale military conflict involving India's key partners or adversaries
+        - Major disruption to energy supplies, shipping lanes, or trade routes affecting India
+
+        8-9:
+        - Significant regional shifts involving India
+        - Major defense agreements
+        - Strategic energy deals
+        - Important sanctions, alliances, or diplomatic developments affecting India
+
+        6-7:
+        - Notable geopolitical developments with moderate implications for India
+        - Regional diplomatic disputes
+        - Elections or policy changes with potential strategic impact
+
+        1-5:
+        - General international news
+        - Local political developments with little relevance to India
+        - Human-interest stories
+        - Domestic events with no geopolitical significance
+
+        RULES:
+        - Prefer India-relevant stories over equally important non-India stories.
+        - Select 5 stories.
+        - Exclude stories scoring below 6.
+
 
     NEWS STORIES:
     {json.dumps(news_feed)}
     """
 
     try: 
-        response= llm.invoke(prompt).content
+        structured_llm = llm.with_structured_output(ScoredNewsResponse)
+        print("NEWS COUNT:", len(news_feed))
+        print("PROMPT LENGTH:", len(prompt))
         
+        response = structured_llm.invoke(prompt)
+        print(f"Score Node Response: {response}")
 
-        raw_json = response.replace("```json", "").replace("```", "").strip()
-        scored_items = json.loads(raw_json)
- 
+        scored_items = response.articles
+        filtered = [
+            item for item in scored_items
+            if item.score > 5
+        ]
 
-        # Heer we map id to orignal search_results
+        filtered = sorted(
+            filtered,
+            key=lambda x: x.score,
+            reverse=True
+        )
+
+        filtered = filtered[:5]
+
+        # Here we map id to orignal search_results
         top_links= []
-        for item in scored_items:
-            try: 
-                orignal_article= state['search_results'][item["id"]]
-                top_links.append({
-                    "title": orignal_article["title"],
-                    "url": orignal_article["url"],
-                    "score": item["score"],
-                    "reason": item["reason"]
-                })
-            except (KeyError, IndexError):
-                continue
+        for item in filtered:
+            orignal_article= state['search_results'][item.id]
+            top_links.append({
+                "title": orignal_article["title"],
+                "url": orignal_article["url"],
+                "score": item.score,
+                "reason": item.reason
+            })
         
         print (f"Success: Selected {len(top_links)} high impact news")
+
         return {
             "top_links": top_links,
         }
@@ -112,10 +159,6 @@ def scoring_node(state: NewsLetterState, llm):
         print (f"Error Handling scoring node: {str(e)}")
         return {"logs": [f"Scoring Error: {str(e)}"]}
     
-
-import time
-import requests
-import trafilatura
 
 def crawl_node(state: NewsLetterState):
     print("Node: Crawling content")
@@ -214,6 +257,19 @@ def newsletter_generator_node(state: NewsLetterState, llm):
            - Use HTML tags: <h3>, <ul>, <li>, <b>, <i>.
            - No markdown (no # or * for bold). Use tags only.
 
+           Return ONLY the newsletter content.
+
+            Do NOT explain your reasoning.
+            Do NOT show your analysis.
+            Do NOT show planning steps.
+            Do NOT include any text before TODAY'S TRIGGER.
+
+            CRITICAL OUTPUT RULE:
+            Do not output <think> tags.
+            Do not reveal reasoning.
+            Do not reveal planning.
+            Return only the final newsletter HTML.
+
         SOURCE FACTS:
         {context}
 
@@ -227,10 +283,24 @@ def newsletter_generator_node(state: NewsLetterState, llm):
     try:
         response = llm.invoke(prompt)
 
+        print("RAW RESPONSE:")
+        print(response)
+        print("CONTENT:")
+        print(response.content)
+
         if hasattr(response, 'content') and isinstance(response.content, list):
             raw_text = response.content[0].get('text', '')
         else:
             raw_text = response.content
+        
+                
+
+        raw_text = re.sub(
+            r"<think>.*?</think>",
+            "",
+            response.content,
+            flags=re.DOTALL
+        ).strip()
         
         
         clean_text = raw_text.replace('\\n', '\n').strip()
@@ -255,55 +325,85 @@ def reflection_node(state: NewsLetterState, llm):
         print ("Max iterations reached. moving to publish with logs")
         return {"status": "publish"}
     
+    source_context = "\n\n".join(
+    state["raw_markdown"]
+    )
+    
     prompt = f"""
         You are a Fact-Checker. Compare the Newsletter against the Source Markdown.
         
         SOURCE MARKDOWN:
-        {state['raw_markdown']}
+        {source_context[:2000]}
 
         GENERATED NEWSLETTER:
         {state['newsletter']}
 
-        CHECK FOR:
-        1. Hallucinations (Facts not in source).
-        2. Missing major news from the top 6 links.
-        3. Formatting errors.
+        You are a FINAL QUALITY GATE, not an editor.
 
-        If the newsletter is accurate, you must only return "PUBLISH".
-        If there are errors, return a detailed list of what to fix.
+        Your job is NOT to improve the newsletter.
 
-        IMPORTANT: Return ONLY JSON:
+        Your job is ONLY to prevent publication of newsletters containing:
 
-        {{"status": "publish"}}
+        1. Clear factual hallucinations.
+        2. Major factual inaccuracies.
+        3. Serious omissions of one of the selected stories.
+        4. Broken formatting.
 
-        OR
+        IMPORTANT:
 
-        {{"status": "revise", "issues": ["..."]}}
+        - Do NOT suggest stylistic improvements.
+        - Do NOT suggest additional context.
+        - Do NOT request deeper analysis.
+        - Do NOT request more details.
+        - Do NOT critique writing quality.
+        - Do NOT critique structure.
+        - Do NOT critique optional omissions.
+
+        If the newsletter is factually correct and reasonably covers the selected stories, return:
+
+        status = "publish"
+
+        Only return:
+
+        status = "revise"
+
+        when a real factual issue would mislead the reader.
+
+        DEFAULT DECISION: publish.
+        Choose revise only if there is a clear factual error,
+        hallucination, or omission of a selected story.
+
+        If status = publish,
+        critique must be an empty list.
+
+        If uncertain, choose publish.
+
         """    
             
-    response = llm.invoke(prompt).content
-
-    res_str = str(response[0]) if isinstance(response, list) else str(response)
+    structured_llm = llm.with_structured_output(CritiqueNodeResponse)
+    start = time.time()
 
     try:
-        clean_json = res_str.replace("```json", "").replace("```", "").strip()
-        data = json.loads(clean_json)
+        response = structured_llm.invoke(prompt)
+    except Exception:
+        return {"status": "publish"}
+    
+    print(
+    f"Reflection LLM time: {time.time()-start:.2f}s"
+        )
 
-        if data.get("status") == "publish":
-            return {"status": "publish"}
-        else:
-            issues = data.get("issues", ["No specific issues listed"])
-            return {
-                "status": "revise",
-                "critique": issues 
+    print(response)
+
+    if response.status == "publish":
+        return {"status": "publish"}
+    else:
+        issues = response.critique
+        return {
+            "status": "revise",
+            "critique": issues,
+            "iteration_count": state["iteration_count"] + 1
             }
 
-    except:
-        return {
-            "status": "sending",
-            "critique": ["Invalid JSON from reflection"],
-            "iteration_count": state['iteration_count'] + 1
-        }
     
 
         
@@ -325,55 +425,63 @@ def should_continue(state: NewsLetterState):
     return "end"
 
 
-# ---- FOR DEPLOYMENT NO BACKGROUND WORKERS AS RENDER RAILWAY DO NOT HAVE FREE TIER FOR BACKGROUND WORKERS ----
+configuration = sib_api_v3_sdk.Configuration()
+configuration.api_key["api-key"] = settings.brevo_api_key.get_secret_value()
 
-# def send_email_node(state: NewsLetterState):
-#     print("Node: Offloading Newsletter to Celery Queue")
-
-#     if not state.get('newsletter'):
-#         return {"status": "error", "logs": ["Email failed: Newsletter content is empty"]}
-    
-#     # Query recipients synchronously within the node
-#     recipients = list(Subscriber.objects.filter(is_active=True).values_list('email', flat=True))
-
-#     send_newsletter_task.delay(state['newsletter'], recipients)
-
-#     print("Task queued in Redis. Moving to end state.")
-#     return {"status": "published"}  
-
+api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+    sib_api_v3_sdk.ApiClient(configuration)
+)
 
 def send_email_node(state: NewsLetterState):
     print("Node: Sending Newsletter")
-    print(f"{state['newsletter']}")
 
     def get_recipient_list():
-        return list(Subscriber.objects.filter(is_active=True).values_list('email', flat=True))
+        return list(
+            Subscriber.objects.filter(is_active=True)
+            .values_list("email", flat=True)
+        )
 
     recipients = get_recipient_list()
-    if not state['newsletter']:
-        return {"logs": ["Email failed: Newsletter content is empty"]}
+
+    if not state["newsletter"]:
+        return {
+            "status": "error",
+            "logs": ["Newsletter content is empty"]
+        }
 
     try:
-        connection= get_connection(fail_silently= False)
-        email = EmailMessage(
+        bcc_emails = [
+            {"email": email}
+            for email in recipients
+        ]
+
+        email = sib_api_v3_sdk.SendSmtpEmail(
+            sender={
+                "name": "Geopolitics Digest",
+                "email": "batmanmishra23@gmail.com"
+            },
+            to=[
+                {
+                    "email": "batmanmishra23@gmail.com"
+                }
+            ],
+            bcc=bcc_emails,
             subject="Geopolitics Digest Daily: Morning Briefing",
-            body=state['newsletter'],
-            from_email= settings.email_host_user,
-            to= ["amanmishrarewa23@gmail.com"],  # my secondary email address specially for this work
-            bcc= recipients, # using blind carbon copy for privacy as others cat see each others email address
-            connection= connection  
+            html_content=state["newsletter"]
         )
-        email.content_subtype = "html"    
 
-        print(f"Attempting to Send")    
+        response = api_instance.send_transac_email(email)
 
-        email.send()
-        print("Newsletter Sent to Recipients")
-        return {"status": "published"}
+        print(f"Newsletter sent: {response}")
+
+        return {
+            "status": "published"
+        }
 
     except Exception as e:
         error_msg = f"Email not sent: {str(e)}"
-        print(f"Error: {error_msg}")
+        print(error_msg)
+
         return {
             "status": "error",
             "logs": [error_msg],

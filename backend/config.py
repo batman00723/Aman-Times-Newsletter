@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     google_api_key: SecretStr
     cerebras_api_key: SecretStr
+    groq_api_key: SecretStr
     tavily_api_key: SecretStr
 
     langsmith_api_key: SecretStr
@@ -29,6 +30,10 @@ class Settings(BaseSettings):
     email_use_tls: bool = True
     email_host_user: str = 'batmanmishra23@gmail.com'
     email_host_password: SecretStr
+
+    resend_api_key: SecretStr
+
+    brevo_api_key: SecretStr
 
     model_config= SettingsConfigDict(env_file= ".env",
                                      extra= 'ignore',

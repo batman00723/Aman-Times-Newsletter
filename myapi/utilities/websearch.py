@@ -23,7 +23,12 @@ class WebSearch:
             "include_images": False,
             "include_answer": False,
             "include_raw_content": False,
-            "include_domains": [],
+            "include_domains": ["thehindu.com",
+                                "indianexpress.com",
+                                "economictimes.indiatimes.com",
+                                "business-standard.com",
+                                "hindustantimes.com"
+                                ],
             "exclude_domains": ["facebook.com", 
                                 "instagram.com", 
                                 "x.com", 
