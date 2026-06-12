@@ -16,6 +16,15 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers ge
    - Validates outputs using a reflection loop to reduce hallucinations
    - Delivers newsletters asynchronously via background workers(for production background workers are not used due to free tier limits of Railway)
 
+## Live Demo
+
+**Subscribe**: https://newsletter-yend.onrender.com/
+**Try it now:** https://newsletter-yend.onrender.com/api_v1/docs
+
+### How to try: 
+1. First Subscribe to the newsletter by putting you email address to subscribe endpoint.
+2. Go to get the Newsletter Endpoint and get your Newsletter.
+
 ## Performance Optimisation
 
 This system was iteratively optimised using LangSmith tracing to identify and eliminate bottlenecks.
@@ -73,6 +82,7 @@ Occasional spikes in the generation node are due to external API rate limits (Ge
 3. **Content Extraction**: Uses `trafilatura` to extract clean ad-free text from HTML.
 4. **Editorial Generation**: Bakes raw data into a professional HTML template using Jinja2.
 5. **Quality Reflection**: A dedicated node that checks for hallucinations or formatting errors. If "revise" is triggered, the agent loops back to re-draft the newsletter.
+6. **Daily Scheduling**: Cron Job runs daily to deliver the Newsletter to the Subscribers Daily at 7:00 AM IST.
 
 ---
 
@@ -98,14 +108,6 @@ Occasional spikes in the generation node are due to external API rate limits (Ge
 - **Production Infrastructure**: Designed a API layer with Pydantic settings and Brevo Mail API integration for automated delivery.
 
 ---
-
-## Live Demo
-**Try it now:** https://newsletter-yend.onrender.com/api_v1/docs
-
-### How to try: 
-1. First Subscribe to Newsletter by putting you email address to subscribe endpoint.
-2. Go to Get NewsLetter Endpoint and Get your Nesletter.
-3. You can unsubscribe anytime by putting your registered email at Unsubscribe Endpoint.
 
 ### Setup
 ```bash
