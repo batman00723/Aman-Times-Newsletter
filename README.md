@@ -18,7 +18,8 @@ An autonomous, self-correcting AI agent that researches, scores, and delivers ge
 
 ## Live Demo
 
-**Subscribe**: https://newsletter-yend.onrender.com/
+**Subscribe to Newsletter**: https://newsletter-yend.onrender.com
+
 **Try it now:** https://newsletter-yend.onrender.com/api_v1/docs
 
 ### How to try: 
