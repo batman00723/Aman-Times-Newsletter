@@ -82,5 +82,12 @@ class AgentOperationController(ControllerBase):
                 "message": "There is problem while running newsletter Agent",
                 "deatils": str(e) if settings.debug else "Internal Server Error"
             }
-        
+   
+
+@api_controller("/system")
+class SystemController:
+
+    @http_get("/ping")
+    def ping(self, request):
+        return {"status": "alive"}
 

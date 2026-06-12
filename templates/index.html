@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aman Times Newsletter</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Inter, system-ui, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f8f8f8;
+    color:#111;
+}
+
+.container{
+    text-align:center;
+    width:100%;
+    max-width:700px;
+    padding:20px;
+}
+
+.logo{
+    width:90px;
+    height:90px;
+    margin:0 auto 30px;
+    border-radius:20px;
+    background:#e5e5e5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+}
+
+h1{
+    font-size:4rem;
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+.subtitle{
+    color:#666;
+    font-size:1.1rem;
+    margin-bottom:40px;
+}
+
+.form{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+input{
+    width:420px;
+    max-width:100%;
+    padding:18px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    background:white;
+    box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+
+button{
+    padding:18px 28px;
+    border:none;
+    border-radius:10px;
+    background:#0f172a;
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.message{
+    margin-top:20px;
+    font-size:15px;
+}
+
+footer{
+    position:fixed;
+    bottom:20px;
+    left:30px;
+    color:#666;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logo">📰</div>
+
+    <h1>Aman Times Newsletter</h1>
+
+    <p class="subtitle">
+        Daily geopolitical Newsletter delivered to your inbox.
+    </p>
+
+    <div class="form">
+        <input
+            type="email"
+            id="email"
+            placeholder="Enter your email"
+        >
+
+        <button onclick="subscribe()">
+            Subscribe
+        </button>
+    </div>
+
+    <div class="message" id="message"></div>
+
+</div>
+
+<footer>
+    © 2026 Aman Times Newsletter
+</footer>
+
+<script>
+
+async function subscribe() {
+
+    const email = document.getElementById("email").value;
+    const message = document.getElementById("message");
+
+    if(!email){
+        message.innerHTML = "Please enter an email.";
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            "/api_v1/subscriber/add_subscriber",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    email:email
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        message.innerHTML =
+            "✅ Successfully subscribed.";
+
+    } catch(error){
+
+        message.innerHTML =
+            "❌ Subscription failed.";
+    }
+}
+</script>
+
+</body>
+</html>
