@@ -2,7 +2,7 @@
 
 An autonomous, self-correcting AI agent that researches, scores, and delivers geopolitical briefings. Built with **LangGraph** for agentic orchestration and **Django Ninja** for backend.
 
- > Optimized LLM agent pipeline achieving ~75% latency reduction and 6x improvement in tail latency (P99)
+ > Optimized LLM agent pipeline achieving ~80% latency reduction and 6x improvement in tail latency (P99)
 
    ## Problem
    Manually researching news takes more than an hour daily.
@@ -46,7 +46,7 @@ Using LangSmith tracing, I identified latency bottlenecks and reduced newsletter
 - End-to-end latency: ~10-15s (P50)
 - Tail latency: ~15-20s (P99)
 - Crawl step: ~4-5s (Trafilatura-based extraction)
-- Token usage: <15k per run
+- Token usage: <10k per run
 
   <p align="center">
   <img src="Trace Latency.png" width="600" title="trace latency">
