@@ -1,69 +1,190 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Good Morning Newsletter</title>
+    <title>Aman Times | Daily Intelligence Brief</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #fdfaf5; font-family: 'Georgia', serif;">
 
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #fdfaf5; padding: 40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: transparent;">
-                    
-                    <tr>
-                        <td align="right" style="font-size: 22px; line-height: 1; color: #1a1a1a; letter-spacing: 2px;">
-                            20<br>26
-                        </td>
-                    </tr>
+<body style="
+    margin:0;
+    padding:0;
+    background-color:#f4efe5;
+    font-family:Georgia, serif;
+    color:#1d1d1d;
+">
 
-                    <tr>
-                        <td align="center" style="padding-top: 40px; padding-bottom: 20px;">
-                            <h1 style="font-size: 52px; font-weight: 400; text-transform: uppercase; letter-spacing: 8px; margin: 0; color: #1a1a1a; line-height: 1.1;">
-                                Good Morning<br>Newsletter
-                            </h1>
-                        </td>
-                    </tr>
+<table width="100%" border="0" cellspacing="0" cellpadding="0"
+       style="background-color:#f4efe5;padding:40px 20px;">
 
-                    <tr>
-                        <td align="center" style="padding-bottom: 10px;">
-                            <p style="font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #4a4a4a; margin: 0;">
-                                New updates on the major geopolitical shifts
-                            </p>
-                        </td>
-                    </tr>
+<tr>
+<td align="center">
 
-                    <tr>
-                        <td align="center" style="padding-bottom: 40px;">
-                            <p style="font-size: 16px; font-style: italic; color: #7a7a7a; margin: 0;">
-                                Here are the latest News to keep you smart and informed
-                            </p>
-                        </td>
-                    </tr>
+<table width="650" border="0" cellspacing="0" cellpadding="0">
 
-                    <tr>
-                        <td style="background-color: #ffffff; padding: 40px; border: 1px solid #e0e0e0; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
-                            <div style="font-size: 16px; line-height: 1.8; color: #333333; text-align: left;">
-                                
-                                {{ newsletter_content }}
+<!-- Top Line -->
+<tr>
+    <td>
+        <hr style="border:none;border-top:1px solid #b7aa95;margin:0;">
+    </td>
+</tr>
 
-                            </div>
-                        </td>
-                    </tr>
+<!-- Publication Info -->
+<tr>
+    <td align="right"
+        style="
+            padding-top:18px;
+            font-size:12px;
+            color:#5a5247;
+            letter-spacing:1px;
+            line-height:1.7;
+        ">
+        Vol. 1 • Daily Edition<br>
+        Independent Publication
+    </td>
+</tr>
 
-                    <tr>
-                        <td align="left" style="padding-top: 20px;">
-                            <p style="font-size: 13px; color: #9a9a9a; margin: 0; font-family: Arial, sans-serif;">
-                                  with ❤️ from Aman
-                            </p>
-                        </td>
-                    </tr>
+<!-- Masthead -->
+<tr>
+    <td align="center"
+        style="padding-top:20px;padding-bottom:8px;">
 
-                </table>
-            </td>
-        </tr>
-    </table>
+        <h1 style="
+            margin:0;
+            font-size:56px;
+            font-weight:700;
+            letter-spacing:4px;
+            color:#111111;
+            text-transform:uppercase;
+        ">
+            Aman Times
+        </h1>
 
-</body>
-</html>
+    </td>
+</tr>
+
+<!-- Categories -->
+<tr>
+    <td align="center"
+        style="padding-bottom:10px;">
+
+        <p style="
+            margin:0;
+            font-size:12px;
+            text-transform:uppercase;
+            letter-spacing:4px;
+            color:#7a6b57;
+        ">
+            Global Affairs • Markets • Security • Technology
+        </p>
+
+    </td>
+</tr>
+
+<!-- Separator -->
+<tr>
+    <td>
+        <hr style="border:none;border-top:1px solid #b7aa95;margin:0;">
+    </td>
+</tr>
+
+<!-- Brief Title -->
+<tr>
+    <td align="center"
+        style="padding-top:20px;padding-bottom:6px;">
+
+        <p style="
+            margin:0;
+            font-size:15px;
+            letter-spacing:2px;
+            text-transform:uppercase;
+            color:#6b6256;
+        ">
+            Daily Intelligence Brief
+        </p>
+
+    </td>
+</tr>
+
+<!-- Reading Time -->
+<tr>
+    <td align="center"
+        style="padding-bottom:35px;">
+
+        <p style="
+            margin:0;
+            font-size:12px;
+            color:#8b8174;
+            letter-spacing:1px;
+        ">
+            Estimated Reading Time: 5 Minutes
+        </p>
+
+    </td>
+</tr>
+
+<!-- Content Box -->
+<tr>
+    <td style="
+        background-color:#f8f3ea;
+        border:1px solid #b7aa95;
+        padding:45px;
+    ">
+
+        <div style="
+            font-size:17px;
+            line-height:1.9;
+            color:#2f2f2f;
+        ">
+
+            {{ newsletter_content }}
+
+        </div>
+
+    </td>
+</tr>
+
+<!-- Quote -->
+<tr>
+    <td align="center"
+        style="padding-top:30px;">
+
+        <p style="
+            margin:0;
+            font-style:italic;
+            color:#756b60;
+            font-size:15px;
+        ">
+            “There are no permanent enemies, and no permanent friends, only permanent interests.”
+        </p>
+
+    </td>
+</tr>
+
+<!-- Footer Line -->
+<tr>
+    <td style="padding-top:25px;">
+        <hr style="border:none;border-top:1px solid #b7aa95;">
+    </td>
+</tr>
+
+<!-- Footer -->
+<tr>
+    <td align="center"
+        style="padding-top:15px;padding-bottom:20px;">
+
+        <p style="
+            margin:0;
+            font-size:12px;
+            color:#6b6256;
+            letter-spacing:1px;
+            line-height:1.9;
+        ">
+            Published by Aman Times<br>
+            Independent Geopolitical Intelligence<br>
+            Delivered Daily at 7:00 AM IST
+        </p>
+
+    </td>
+</tr>
