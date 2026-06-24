@@ -43,9 +43,9 @@ Using LangSmith tracing, I identified latency bottlenecks and reduced newsletter
 
 ### After Optimization
 
-- End-to-end latency: ~18-22s (P50)
-- Tail latency: ~25-30s (P99)
-- Crawl step: ~4-8s (Trafilatura-based extraction)
+- End-to-end latency: ~10-15s (P50)
+- Tail latency: ~15-20s (P99)
+- Crawl step: ~4-5s (Trafilatura-based extraction)
 - Token usage: <15k per run
 
   <p align="center">
