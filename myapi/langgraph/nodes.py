@@ -63,6 +63,9 @@ def scoring_node(state: NewsLetterState, llm):
     prompt = f"""
         You are an expert Geopolitical Analyst specializing in India's strategic interests.
 
+        Don't choose same or similar stories.
+        Always choose different news unless they are connected.
+
         Rate each news story from 1-10 based on BOTH:
 
         1. Impact on the global world order
