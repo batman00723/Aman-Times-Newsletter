@@ -15,6 +15,8 @@ import trafilatura
 from .schemas import ScoredNewsResponse, CritiqueNodeResponse
 import sib_api_v3_sdk
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 #from .tasks import send_newsletter_task
 
 
@@ -283,10 +285,6 @@ def newsletter_generator_node(state: NewsLetterState, llm):
     try:
         response = llm.invoke(prompt)
 
-        # print("RAW RESPONSE:")
-        # print(response)
-        # print("CONTENT:")
-        # print(response.content)
 
         if hasattr(response, 'content') and isinstance(response.content, list):
             raw_text = response.content[0].get('text', '')
@@ -305,9 +303,14 @@ def newsletter_generator_node(state: NewsLetterState, llm):
         
         clean_text = raw_text.replace('\\n', '\n').strip()
 
+
+        
+
+        current_date = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
+
         # jinja is used to bake text into html
         jinja_template= Template(template_str)
-        final_html= jinja_template.render(newsletter_content= clean_text)
+        final_html= jinja_template.render(newsletter_content= clean_text, current_date= current_date)
 
         return {
             "newsletter": final_html,
