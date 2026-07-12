@@ -7,7 +7,7 @@ class FlashLLMService:
     def __init__(self):
         self.model = ChatGroq(
             api_key=settings.groq_api_key.get_secret_value(),
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             temperature=0.0,
         )
 
@@ -22,7 +22,7 @@ class ProLLMService:
     def __init__(self):
         self.model = ChatGroq(
             api_key=settings.groq_api_key.get_secret_value(),
-            model="qwen/qwen3-32b",
+            model="llama-3.3-70b-versatile",
             temperature=0.5,
         )
 
@@ -37,7 +37,7 @@ class ScoreLLMService:
     def __init__(self):
         self.model = ChatGroq(
             api_key=settings.groq_api_key.get_secret_value(),
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             temperature=0.0,
         )
 

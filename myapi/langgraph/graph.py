@@ -23,7 +23,7 @@ def create_newsletter_agent(score_llm, flash_llm, pro_llm):
     workflow= StateGraph(NewsLetterState)
 
     workflow.add_node("search", search_node)
-    workflow.add_node("score", partial(scoring_node, llm= flash_llm))
+    workflow.add_node("score", partial(scoring_node, llm= score_llm))
     workflow.add_node("crawl", crawl_node)
 
     workflow.add_node("generate", partial(newsletter_generator_node, llm= pro_llm))
